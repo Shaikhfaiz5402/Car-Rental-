@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 const HelmetDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { helmets, currentUser } = useAppContext();
+  const { helmets, currentUser, token } = useAppContext();
 
   const [helmet, setHelmet] = useState(null);
   const [pickupDate, setPickupDate] = useState('');
@@ -37,12 +37,11 @@ const HelmetDetails = () => {
 
     setLoading(true);
     try {
-      const { data } = await axios.post('/api/bookings/create', {
-        helmet: id,
-        pickupDate,
-        returnDate,
-        mobile,
-      });
+      const { data } = await axios.post(
+        '/api/bookings/create',
+        { helmet: id, pickupDate, returnDate, mobile },
+        { headers: { Authorization: token || localStorage.getItem('token') || '' } }
+      );
 
       if (data.success) {
         toast.success(data.message);

@@ -6,12 +6,12 @@ import toast from 'react-hot-toast'
 import { motion } from 'motion/react'
 
 const MyBookings = () => {
-  const { axios, user, currency } = useAppContext()
+  const { axios, user, currency, token } = useAppContext()
   const [bookings, setBookings] = useState([])
 
   const fetchMyBookings = async () => {
     try {
-      const { data } = await axios.get('/api/bookings/user')
+      const { data } = await axios.get('/api/bookings/user', { headers: { Authorization: token || localStorage.getItem('token') || '' } })
       if (data.success) {
         setBookings(data.bookings)
       } else {
@@ -44,17 +44,10 @@ const MyBookings = () => {
           <p className='text-center text-gray-500 mt-12'>No bookings found.</p>
         )}
         {bookings.map((booking, index) => {
-          // Determine type and item info dynamically
-          // Assuming booking object has one of these properties: car, bike, or helmet
-          const item = booking.car || booking.bike || booking.helmet
-
-          if (!item) return null // skip if no item found (just safety)
-
-          // Item type label for display
-          let itemType = ''
-          if (booking.car) itemType = 'Car'
-          else if (booking.bike) itemType = 'Bike'
-          else if (booking.helmet) itemType = 'Helmet'
+          // Backend returns populated vehicle via refPath and a vehicleType of 'Car'|'Bike'|'Helmet'
+          const item = booking.vehicle
+          if (!item) return null
+          const itemType = booking.vehicleType || ''
 
           return (
             <motion.div
@@ -67,21 +60,17 @@ const MyBookings = () => {
               {/* Image + Info */}
               <div className='md:col-span-1'>
                 <div className='rounded-md overflow-hidden mb-3'>
-                  <img
-                    src={item.image}
-                    alt={`${item.brand} ${item.model || item.name}`}
-                    className='w-full h-auto aspect-video object-cover'
-                  />
+                  <img src={item.image} alt={`${item.brand || ''} ${item.model || item.name || ''}`} className='w-full h-auto aspect-video object-cover' />
                 </div>
                 <p className='text-lg font-medium mt-2'>
                   {item.brand} {item.model || item.name}
                 </p>
                 <p className='text-gray-500'>
                   {item.year
-                    ? `${item.year} • ${item.category} • ${item.location}`
+                    ? `${item.year} • ${item.category || ''} • ${item.location || ''}`
                     : `${item.category || ''} • ${item.location || ''}`}
                 </p>
-                <p className='text-sm mt-1 font-semibold text-primary'>{itemType}</p>
+                 <p className='text-sm mt-1 font-semibold text-primary'>{itemType}</p>
               </div>
 
               {/* Booking Info */}

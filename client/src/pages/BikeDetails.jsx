@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 const BikeDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { bikes, currentUser } = useAppContext();
+  const { bikes, currentUser, token } = useAppContext();
 
   const [bike, setBike] = useState(null);
   const [pickupDate, setPickupDate] = useState('');
@@ -37,12 +37,11 @@ const BikeDetails = () => {
 
     setLoading(true);
     try {
-      const { data } = await axios.post('/api/bookings/create', {
-        bike: id,
-        pickupDate,
-        returnDate,
-        mobile,
-      });
+      const { data } = await axios.post(
+        '/api/bookings/create',
+        { bike: id, pickupDate, returnDate, mobile },
+        { headers: { Authorization: token || localStorage.getItem('token') || '' } }
+      );
 
       if (data.success) {
         toast.success(data.message);
